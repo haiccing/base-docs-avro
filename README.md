@@ -63,11 +63,13 @@ for what is written from now on; checked once the schemas are there.
 - **Absent and `null` mean the same**: a missing field takes its
   default; nothing hangs on the difference.
 - **Integers up to 2^53**; ids and counters beyond, strings.
-- **Free-form JSON only at named edges** (a request's arguments, open
-  headers): there, a declared `json` type (null, boolean, number,
-  string, an array or a map of it):
-  `pear-full-square/mycelium-value-avro/json`, the value as its JSON
-  text.
+- **No free-form JSON, no "any"**: every field of a concrete type. A
+  value whose type is not in the structure names it: a stream's record
+  by where it is, an attachment by its `type`. (The first build's
+  declared `json` type, `mycelium-value-avro/json`, is not used by what
+  is brought to the request.)
+- **A time is ISO 8601 text in JSON**, milliseconds in AVRO
+  (`timestamp-millis`): a record's `timestamp`, a log entry's `time`.
 - **Values that are names stay strings**: kinds, positions, URI parts
   (they have hyphens; an AVRO enum's symbols cannot).
 - **Documents stay plain JSON**, validated as values against their
@@ -185,23 +187,27 @@ within our system and carry a compatible AVRO name 'under the hood'").
 Schemas cascade (the human, 2026-11-21: "there is the kafka record, the
 request (plus response), and then within potentially many other schemas
 optional depending on the context"): each level a schema of its own,
-carrying the next as bytes, single-object encoded, never a union fixed
-in advance.
+self-contained, knowing nothing of the one around it. As built, the
+runtime package's types (`haiccing/base-package-runtime`, `types/`):
 
-1. **The Kafka record**, mycelium's, fixed: `topic`, `key`, `offset`,
-   `timestamp`, `headers`, `value`; read by what carries records (a
-   topic, dispatch, replication).
-2. **The request and its response**, the request module's: `protocol`,
-   `action`, `uri`, `args`, `flags`, `command`, then `output` or
-   `error`; read by the
-   runtime, the gate, the log.
-3. **The action's own**, its arguments and its answer, optional, chosen
-   by the reader: nothing binds an action to a schema; the reader asks
-   for an answer `as` a schema, and it is written so where it is valid
-   as it, else as `json`. Headers stay open.
+1. **The record**, the transport's envelope, Kafka's: `topic`, `key`,
+   `offset`, `timestamp`, `headers`. Its base holds no value: a
+   stream's record with its value is a variant of it, its value the
+   stream's type. Read by what carries records.
+2. **The request**, self-contained: its `command`, the line as typed;
+   who asked and where its answer goes (`from`, `to`, `reply`,
+   `origin`); its `form`, the command as understood, its flags a record,
+   a field a flag; its `processing` (log, metrics, what it changed, what
+   it waits for, the request it became where it was sent on, a link);
+   what is `returned`: `done` or `failed`, a message in natural
+   language, its attachments.
+3. **An attachment**, data that is the product: its `name`, its
+   `type` (a type's URI), where its value is (`at`). The one place a
+   value names its type.
 
-Knowledge stays with its concern; each level versions on its own. Read
-whole, every level is decoded in its place.
+Knowledge stays with its concern; each level versions on its own. A
+request sent on to another mrepo is a request of its own there: linked,
+not copied.
 
 ## In a package
 
@@ -278,8 +284,9 @@ but the type is the value type - that is the data payload".
 
 - **Documents in git**: plain JSON, validated as values against their
   schema.
-- **Today's request records, the inbox and the outbox**: JSON until
-  worked on again; "Data shapes" keeps them ready.
+- **The request layers, the inbox and the outbox**: JSON documents, a
+  record around a request, checked at the inbox by their types, asked of
+  the schema registry, strict. The same structure in JS, JSON and AVRO.
 
 ## What is next
 
