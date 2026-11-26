@@ -1,0 +1,20 @@
+{
+  "name": "base-docs-avro",
+  "description": "The base family's type system in AVRO: core types and their variants, named by URI, their schemas, the registries.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "main.js",
+  "docs": true,
+  "modules": [
+    "pear-full-square/mrepo-base-info",
+    "pear-full-square/pkgm-base-check"
+  ],
+  "template": {
+    "repository": "haiccing/base-docs-package",
+    "commit": "f087f4390679f0b45ef4bb54756a7357b8f8fb2c"
+  },
+  "scripts": {
+    "test": "bare test/run.js"
+  }
+}
