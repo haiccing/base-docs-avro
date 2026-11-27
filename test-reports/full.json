@@ -1,8 +1,8 @@
 {
   "package": "haiccing/base-docs-avro",
-  "content": "a988f94ab415d79cdb0c984f077f8281cb7ec2df97a55e07e32b5aac0e1cea7f",
+  "content": "5c878fd82fd8f626f35df5e9b34c39a43d0e2c5da461fa401dea393622c34e89",
   "bare": "v1.36.0",
-  "date": "2026-11-26T23:20:13.553Z",
+  "date": "2026-11-27T12:25:49.238Z",
   "set": "full",
   "ok": true,
   "units": [
@@ -79,8 +79,8 @@
         "total": 11
       },
       "asserts": {
-        "passed": 94,
-        "total": 94
+        "passed": 93,
+        "total": 93
       },
       "failures": []
     },
@@ -166,12 +166,12 @@
       "unit": "/test/modules/pear-full-square/pkgm-base-check",
       "ok": true,
       "tests": {
-        "passed": 27,
-        "total": 27
+        "passed": 28,
+        "total": 28
       },
       "asserts": {
-        "passed": 94,
-        "total": 94
+        "passed": 98,
+        "total": 98
       },
       "failures": []
     }

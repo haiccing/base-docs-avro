@@ -6,9 +6,9 @@ Every value the family keeps has an AVRO schema. A type is named by a
 URI; its AVRO full name is derived from it behind the scenes, and its
 identity is its fingerprint. A core type is declared once in the
 family; its variants carry more or less detail, by where they are used,
-and AVRO's own resolution reads one as another. The module:
-`mycelium-value-avro`; how a URI and a data name are written:
-`base-docs-uri`.
+and AVRO's own resolution reads one as another. The modules:
+`mycelium-avro`, the schemas; `mycelium-value`, a value's bytes; how a
+URI and a data name are written: `base-docs-uri`.
 
 ## Links
 
@@ -70,6 +70,10 @@ for what is written from now on; checked once the schemas are there.
   is brought to the request.)
 - **A time is ISO 8601 text in JSON**, milliseconds in AVRO
   (`timestamp-millis`): a record's `timestamp`, a log entry's `time`.
+- **Bytes are base64 text in JSON and in memory**, bytes in AVRO, a
+  logical type of the engine's (`base64`): an attachment's `content`.
+  Strict: text that does not decode and encode back to itself is
+  refused.
 - **Values that are names stay strings**: kinds, positions, URI parts
   (they have hyphens; an AVRO enum's symbols cannot).
 - **Documents stay plain JSON**, validated as values against their
@@ -101,8 +105,8 @@ it").
   exact and in its canonical form, a fixed place for each kind of
   statement.
 - **Data that is the product**, a document read, a set to go through:
-  attached, typed by its own type, not spread into the answer; large,
-  pointed to.
+  attached, typed by its own type, not spread into the answer, and not
+  also said; large, pointed to.
 
 ## Core types
 
@@ -166,21 +170,41 @@ within our system and carry a compatible AVRO name 'under the hood'").
   `haiccing.basePackageHelp.annotateAnswer`; the name the core type, the
   namespace its variant. A schema whose name does not map is still a
   schema, known by its fingerprint only.
-- **A module's by its place**: the record and the request are carried
-  by many packages, so named once, where they are defined
-  (`pear-full-square/mycelium-value-avro/record`).
+- **AVRO's own types by a URI too**, `avro/<name>` (`avro/string`,
+  `avro/long`, `avro/bytes`, the eight primitives): no schema file, held
+  by every mrepo without asking; so a type is always named by a URI.
+  `avro` is reserved as a URI's first part (the human, 2026-11-27: "yes"):
+  no organisation by that name; an `avro/` URI that is none of the
+  eight is refused.
+- **Named once, where it is declared**: the record and the request are
+  used by every package and declared by one, the runtime package
+  (`haiccing/base-package-runtime/record`). A type is a package's,
+  never a module's ("Core types"); the first build's module names
+  (`pear-full-square/mycelium-value-avro/record`) are not used.
 
 ## Fingerprints
 
 - **A schema's identity its fingerprint**: the AVRO specification's
-  CRC-64-AVRO (Rabin) of its Parsing Canonical Form, 16 hex digits. A
+  CRC-64-AVRO (Rabin), 16 hex digits, of the schema's contract form:
+  the schema whole, self-contained, without its descriptions. Not of
+  AVRO's Parsing Canonical Form (the human, 2026-11-27: "can't you
+  amend how the fingerprint is created?"): that form also leaves out
+  defaults, aliases and logical types, which change how data is read;
+  here they are part of the identity, only the descriptions are not. A
   schema never changes; a new version is a new schema, a new
-  fingerprint, kept beside the old. The canonical form includes the full
-  name: a variant has its own fingerprint even where its fields are the
-  base's.
-- **A record names its own**: a topic is not bound to one schema; each
-  value carries its writer's fingerprint, AVRO's single-object encoding
-  (two marker bytes, `C3 01`, the fingerprint's 8 bytes, the value).
+  fingerprint, kept beside the old; the registry refuses another
+  fingerprint under a URI it holds. The form includes the full name: a
+  variant has its own fingerprint even where its fields are the base's.
+- **What a fingerprint is for**: a schema's evolution over time, and
+  what crosses between installs. Within an install a type's URI names
+  one schema (the registry refuses another under it), so bytes there
+  are read by the type their URI names and carry no fingerprint: an
+  attachment's content.
+- **A record names its own**, where bytes are kept over time or cross:
+  a topic is not bound to one schema; each value carries its writer's
+  fingerprint, AVRO's single-object encoding (two marker bytes, `C3
+  01`, the fingerprint's 8 bytes, the value). The first build's; the
+  plain form, the value's bytes alone, is `mycelium-value`'s.
 
 ## The cascade
 
@@ -201,9 +225,13 @@ runtime package's types (`haiccing/base-package-runtime`, `types/`):
    it waits for, the request it became where it was sent on, a link);
    what is `returned`: `done` or `failed`, a message in natural
    language, its attachments.
-3. **An attachment**, data that is the product: its `name`, its
-   `type` (a type's URI), where its value is (`at`). The one place a
-   value names its type.
+3. **An attachment**, data that is the product, a wrapper, one fixed
+   type: its `name`, its `type` (a type's URI, always), its `content`
+   (AVRO's binary of the value by that type; base64 text in JSON), or
+   where its value is when it is not carried (`at`). The one place a
+   value names its type. Written and read under the hood: an action
+   hands over a value and is handed a value; an mrepo that passes an
+   answer on carries the bytes and needs nothing of their type.
 
 Knowledge stays with its concern; each level versions on its own. A
 request sent on to another mrepo is a request of its own there: linked,
@@ -217,30 +245,36 @@ A package carries its types; where it is deployed they are known.
   each core type the package declares, a `doc` on it and on every field;
   a `README.md` beside them, a line each
   (`haiccing/base-package-rns/types/lookup-entry.avsc`,
-  `haiccing.basePackageRns.lookupEntry`). Carried; not registered at
-  deploy yet.
+  `haiccing.basePackageRns.lookupEntry`). Carried; known where the
+  package is placed through the schema registry (`base-docs-vision`,
+  "Type system" and "Solutions": what is agreed, what is built).
 - **`schemas/`, the first build's form**: `schemas/<name>.json`, one
-  schema a file; a module's in its own `schemas/`. Registered at deploy:
-  placing a package registers every schema its bundle carries, its own
-  and its modules', in the install's registry (the creator registers);
-  one that is not valid AVRO stops the deploy. The pattern's how-to:
-  `base-docs-package`, `schemas`.
+  schema a file; a module's in its own `schemas/`. No longer registered
+  at deploy (removed with the request's new structure, 2026-11-26);
+  still carried by the packages not yet brought to `types/`. The
+  pattern's how-to: `base-docs-package`, `schemas`.
 - **Read with `info`**: `info/get schemas`, every schema an mrepo's
   packages carry, by URI and fingerprint; a binary record is decoded by
   `crud/read`, every level.
 
 ## The registry
 
-An install's, built (`mycelium-value-avro`): an index, not a
-gatekeeper.
+The first build's (`mycelium-value-avro`), an install's index by
+fingerprint in its store: its code is there, nothing writes it since
+the registration at deploy was removed (2026-11-26). The registry now
+is the component, `base-component-avro-registry`: `base-docs-vision`,
+"Type system". What the first build settled about a registry, kept:
 
 - **What a fingerprint is, what a name has been**: schemas by their URI
   and by their fingerprint, in the install's store (`<store>/schemas`),
   a folder of plain JSON documents, one a schema, named by its
   fingerprint, the schema whole (every named type it uses defined in
-  it). Written at deploy; read by every process.
-- **Never refuses a valid schema**: no subjects bound to topics, no
-  global ids, no compatibility modes. Whether data reads as a schema is
+  it). The first build's store; the component keeps its types in its
+  `main`, a file a type at its URI, and no process reads a folder for a
+  type.
+- **No subjects bound to topics, no global ids, no compatibility
+  modes** (the first build never refused a valid schema; the component
+  refuses one thing: a changed schema under a URI it holds). Whether data reads as a schema is
   the reader's question.
 - **Three questions**: the core types there are; a core type's variants
   (by namespace); a variant's versions (by fingerprint, with the commit
@@ -285,11 +319,17 @@ but the type is the value type - that is the data payload".
 - **Documents in git**: plain JSON, validated as values against their
   schema.
 - **The request layers, the inbox and the outbox**: JSON documents, a
-  record around a request, checked at the inbox by their types, asked of
-  the schema registry, strict. The same structure in JS, JSON and AVRO.
+  record around a request, checked at the inbox by their types, the
+  mrepo's own, in its `avro` layer, strict. The same structure in JS,
+  JSON and AVRO. An attachment's content inside them is AVRO's binary,
+  as base64 text.
 
 ## What is next
 
-What is agreed and not built, the registry as a component, the `avro`
-package and layer, the modules' split: the vision, `base-docs-vision`,
-"Type system".
+Built since: the registry as a component, its type data in its `main`;
+the `avro` layer in every mrepo, the runtime's three essential types in
+it; an attachment carrying its content, converted under the hood. Agreed and not built: a runtime asking the
+registry for a type it does not hold, through the link in its `avro` layer; variants; the
+`avro` package; `mycelium-value-avro` retired into `mycelium-value` as
+the parked packages are brought over. The vision, `base-docs-vision`,
+"Type system" and "Solutions".
