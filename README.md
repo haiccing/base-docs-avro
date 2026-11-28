@@ -245,42 +245,37 @@ A package carries its types; where it is deployed they are known.
   each core type the package declares, a `doc` on it and on every field;
   a `README.md` beside them, a line each
   (`haiccing/base-package-rns/types/lookup-entry.avsc`,
-  `haiccing.basePackageRns.lookupEntry`). Carried; known where the
-  package is placed through the schema registry (`base-docs-vision`,
-  "Type system" and "Solutions": what is agreed, what is built).
+  `haiccing.basePackageRns.lookupEntry`). Declared once, here;
+  gathered by the schema registry from the install's sources ("The
+  registry"; as built: from the store).
 - **`schemas/`, the first build's form**: `schemas/<name>.json`, one
   schema a file; a module's in its own `schemas/`. No longer registered
   at deploy (removed with the request's new structure, 2026-11-26);
   still carried by the packages not yet brought to `types/`. The
   pattern's how-to: `base-docs-package`, `schemas`.
-- **Read with `info`**: `info/get schemas`, every schema an mrepo's
-  packages carry, by URI and fingerprint; a binary record is decoded by
-  `crud/read`, every level.
+- **Listed by the registry**: `avro-registry/types`, every type of the
+  install, by URI; `avro-registry/get <URI>`, one, its schema attached.
+  The info layer's `schemas` page, the first build's list, is retired.
 
 ## The registry
 
-The first build's (`mycelium-value-avro`), an install's index by
-fingerprint in its store: its code is there, nothing writes it since
-the registration at deploy was removed (2026-11-26). The registry now
-is the component, `base-component-avro-registry`: `base-docs-vision`,
-"Type system". What the first build settled about a registry, kept:
+Types and variants are declared by the packages; the registry gathers
+them (the human, 2026-11-28: "types and variants are declared by the
+packages, and packages are self-contained. A package always is an
+install on its own that includes all its dependencies"). The component,
+`base-component-avro-registry`: `base-docs-vision`, "Type system".
 
-- **What a fingerprint is, what a name has been**: schemas by their URI
-  and by their fingerprint, in the install's store (`<store>/schemas`),
-  a folder of plain JSON documents, one a schema, named by its
-  fingerprint, the schema whole (every named type it uses defined in
-  it). The first build's store; the component keeps its types in its
-  `main`, a file a type at its URI, and no process reads a folder for a
-  type.
-- **No subjects bound to topics, no global ids, no compatibility
-  modes** (the first build never refused a valid schema; the component
-  refuses one thing: a changed schema under a URI it holds). Whether data reads as a schema is
-  the reader's question.
-- **Three questions**: the core types there are; a core type's variants
-  (by namespace); a variant's versions (by fingerprint, with the commit
-  that brought it, in the order registered). No version numbers.
-- **Only what is written with**: a reader's schema is not registered; a
-  reader's type is made against the names the registry knows.
+- **Declared by the packages**: a type once, in its package's
+  `types/`; each package self-contained, an install on its own with all
+  it depends on, its list holding the packages whose types it uses.
+- **Gathered by the registry**: every type the packages in the
+  install's sources declare, loaded strictly into its `main`, a file a
+  type at its URI; a changed type under a URI it holds refused. As
+  built: from the store's placed packages; from the sources with the
+  next step. Variants not in it yet.
+- **Held by an mrepo**: what it is given by the registry, kept in its
+  `avro` layer, the runtime's three essential types its own from its
+  deploy.
 
 ## Is and is-like
 
@@ -311,7 +306,7 @@ but the type is the value type - that is the data payload".
 - **A Kafka record's structure**: every topic's records are the record
   ("The cascade"); what a topic holds is its value's core type.
 - **Named by its type**: `request-summary`, never a generic word
-  ("log"); whose it is, is where it is (a node mrepo's
+  ("log"); whose it is, is where it is (a peer mrepo's
   `request-summary` topic).
 
 ## What stays JSON
